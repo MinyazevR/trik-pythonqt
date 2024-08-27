@@ -75,4 +75,3 @@
 #include <QMatrix>
 
 #endif
-

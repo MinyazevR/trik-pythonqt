@@ -49,8 +49,9 @@
 
 //! Defines an abstract interface to file access for the Python import statement.
 //! see PythonQt::setImporter()
-class PythonQtImportFileInterface {
-	Q_DISABLE_COPY(PythonQtImportFileInterface)
+class PythonQtImportFileInterface
+{
+  Q_DISABLE_COPY(PythonQtImportFileInterface)
 public:
   // get rid of warnings
   virtual ~PythonQtImportFileInterface() {}
@@ -80,8 +81,6 @@ public:
   //! called by PythonQt after successful import to allow
   //! recording of imports
   virtual void importedModule(const QString& /*module*/) {}
-
 };
 
 #endif
-

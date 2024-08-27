@@ -44,35 +44,24 @@
 
 bool PythonQtGILScope::_enableGILScope = false;
 
-PythonQtGILScope::PythonQtGILScope() : _ensured(false)
-{
+PythonQtGILScope::PythonQtGILScope() : _ensured(false) {
   if (_enableGILScope) {
     _state = PyGILState_Ensure();
     _ensured = true;
   }
 }
 
-PythonQtGILScope::~PythonQtGILScope()
-{
-  release();
-}
+PythonQtGILScope::~PythonQtGILScope() { release(); }
 
-void PythonQtGILScope::release()
-{
+void PythonQtGILScope::release() {
   if (_ensured) {
     PyGILState_Release(_state);
     _ensured = false;
   }
 }
 
-void PythonQtGILScope::setGILScopeEnabled(bool flag)
-{
-  _enableGILScope = flag;
-}
+void PythonQtGILScope::setGILScopeEnabled(bool flag) { _enableGILScope = flag; }
 
-bool PythonQtGILScope::isGILScopeEnabled()
-{
-  return _enableGILScope;
-}
+bool PythonQtGILScope::isGILScopeEnabled() { return _enableGILScope; }
 
 #endif

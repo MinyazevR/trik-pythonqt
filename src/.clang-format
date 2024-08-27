@@ -1,0 +1,22 @@
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 2
+ColumnLimit: 140
+PointerAlignment: Left
+ReferenceAlignment: Left
+SortIncludes: Never
+ReflowComments: false
+BreakBeforeBraces: Custom
+AllowShortEnumsOnASingleLine: false
+SpaceAfterTemplateKeyword: false
+BraceWrapping:
+    AfterClass: true
+    AfterFunction: false
+    AfterCaseLabel: true
+AlwaysBreakTemplateDeclarations: false
+AllowShortFunctionsOnASingleLine: true
+StatementMacros: [PyObject_HEAD, Q_UNUSED]
+IndentCaseBlocks: true
+NamespaceIndentation: All
+FixNamespaceComments: false
+IndentPPDirectives: BeforeHash

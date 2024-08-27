@@ -46,13 +46,13 @@
 #define PYTHONQT_FULL_THREAD_SUPPORT
 
 #ifdef PYTHONQT_FULL_THREAD_SUPPORT
-#define PYTHONQT_GIL_SUPPORT
-#define PYTHONQT_ALLOW_THREADS_SUPPORT
+  #define PYTHONQT_GIL_SUPPORT
+  #define PYTHONQT_ALLOW_THREADS_SUPPORT
 #endif
 
 #ifdef PYTHONQT_GIL_SUPPORT
 
-#define PYTHONQT_GIL_SCOPE PythonQtGILScope internal_pythonqt_gilscope;
+  #define PYTHONQT_GIL_SCOPE PythonQtGILScope internal_pythonqt_gilscope;
 
 //! Ensures/releases the Python GIL
 //! An instance of this class can be used to
@@ -82,7 +82,7 @@ private:
 
 #else
 
-#define PYTHONQT_GIL_SCOPE
+  #define PYTHONQT_GIL_SCOPE
 
 //! Empty dummy implementation.
 class PythonQtGILScope
@@ -96,7 +96,7 @@ public:
 
 #ifdef PYTHONQT_ALLOW_THREADS_SUPPORT
 
-#define PYTHONQT_ALLOW_THREADS_SCOPE PythonQtThreadStateSaver internal_pythonqt_savethread;
+  #define PYTHONQT_ALLOW_THREADS_SCOPE PythonQtThreadStateSaver internal_pythonqt_savethread;
 
 //! This class wraps the Python save/restore thread state API.
 //! It can be used to allow other Python threads to run when entering C++ code
@@ -105,23 +105,17 @@ class PythonQtThreadStateSaver
 {
   Q_DISABLE_COPY(PythonQtThreadStateSaver)
 public:
-  PythonQtThreadStateSaver() {
-	save();
-  }
+  PythonQtThreadStateSaver() { save(); }
 
-  ~PythonQtThreadStateSaver() {
-	restore();
-  }
+  ~PythonQtThreadStateSaver() { restore(); }
 
-  void save() {
-	_state = PyEval_SaveThread();
-  }
+  void save() { _state = PyEval_SaveThread(); }
 
   void restore() {
-	if (_state) {
-	  PyEval_RestoreThread(_state);
+    if (_state) {
+      PyEval_RestoreThread(_state);
       _state = nullptr;
-	}
+    }
   }
 
 private:
@@ -130,13 +124,13 @@ private:
 
 #else
 
-#define PYTHONQT_ALLOW_THREADS_SCOPE
+  #define PYTHONQT_ALLOW_THREADS_SCOPE
 
 //! Empty dummy implementation.
 class PythonQtThreadStateSaver
 {
 public:
-  PythonQtThreadStateSaver() {};
+  PythonQtThreadStateSaver(){};
   void save() {}
   void restore() {}
 };

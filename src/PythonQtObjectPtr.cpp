@@ -40,87 +40,55 @@
 //----------------------------------------------------------------------------------
 
 #include <PythonQt.h>
-  
+
 #ifndef Py_XSETREF // Some Python2, but not the latest one
-#define Py_XSETREF(op1, op2)                       \
-  do {                                             \
-    auto **op = &(op1);                            \
-    PyObject *tmp = static_cast<PyObject *>(*op);  \
-    *op = (op2);                                   \
-    Py_XDECREF(tmp);                               \
-  } while (0)
+  #define Py_XSETREF(op1, op2)                                                                                                             \
+    do {                                                                                                                                   \
+      auto** op = &(op1);                                                                                                                  \
+      PyObject* tmp = static_cast<PyObject*>(*op);                                                                                         \
+      *op = (op2);                                                                                                                         \
+      Py_XDECREF(tmp);                                                                                                                     \
+    } while (0)
 #endif
 
-QVariant PythonQtObjectPtr::evalScript(const QString& script, int start)
-{
-  return PythonQt::self()->evalScript(_object, script, start);
-}
+QVariant PythonQtObjectPtr::evalScript(const QString& script, int start) { return PythonQt::self()->evalScript(_object, script, start); }
 
-void PythonQtObjectPtr::evalFile(const QString& file)
-{
-  PythonQt::self()->evalFile(_object, file);
-}
+void PythonQtObjectPtr::evalFile(const QString& file) { PythonQt::self()->evalFile(_object, file); }
 
-QVariant PythonQtObjectPtr::evalCode(PyObject* pycode)
-{
-  return PythonQt::self()->evalCode(_object, pycode);
-}
+QVariant PythonQtObjectPtr::evalCode(PyObject* pycode) { return PythonQt::self()->evalCode(_object, pycode); }
 
-void PythonQtObjectPtr::addObject(const QString& name, QObject* object)
-{
-  PythonQt::self()->addObject(_object, name, object);
-}
+void PythonQtObjectPtr::addObject(const QString& name, QObject* object) { PythonQt::self()->addObject(_object, name, object); }
 
-void PythonQtObjectPtr::addVariable(const QString& name, const QVariant& v)
-{
-  PythonQt::self()->addVariable(_object, name, v);
-}
+void PythonQtObjectPtr::addVariable(const QString& name, const QVariant& v) { PythonQt::self()->addVariable(_object, name, v); }
 
-void PythonQtObjectPtr::removeVariable(const QString& name)
-{
-  PythonQt::self()->removeVariable(_object, name);
-}
+void PythonQtObjectPtr::removeVariable(const QString& name) { PythonQt::self()->removeVariable(_object, name); }
 
-QVariant PythonQtObjectPtr::getVariable(const QString& name)
-{
-  return PythonQt::self()->getVariable(_object, name);
-}
+QVariant PythonQtObjectPtr::getVariable(const QString& name) { return PythonQt::self()->getVariable(_object, name); }
 
-
-QVariant PythonQtObjectPtr::call(const QString& callable, const QVariantList& args, const QVariantMap& kwargs)
-{
+QVariant PythonQtObjectPtr::call(const QString& callable, const QVariantList& args, const QVariantMap& kwargs) {
   return PythonQt::self()->call(_object, callable, args, kwargs);
 }
 
-QVariant PythonQtObjectPtr::call(const QVariantList& args, const QVariantMap& kwargs)
-{
+QVariant PythonQtObjectPtr::call(const QVariantList& args, const QVariantMap& kwargs) {
   return PythonQt::self()->call(_object, args, kwargs);
 }
 
-PythonQtObjectPtr::PythonQtObjectPtr(PyObject* o)
-{
+PythonQtObjectPtr::PythonQtObjectPtr(PyObject* o) {
   Py_XINCREF(o);
   _object = o;
 }
 
-PythonQtObjectPtr::PythonQtObjectPtr(PythonQtSafeObjectPtr &&p) :_object(p.takeObject())
-{
-}
+PythonQtObjectPtr::PythonQtObjectPtr(PythonQtSafeObjectPtr&& p) : _object(p.takeObject()) {}
 
-PythonQtObjectPtr::~PythonQtObjectPtr()
-{
-  Py_XDECREF(_object);
-}
+PythonQtObjectPtr::~PythonQtObjectPtr() { Py_XDECREF(_object); }
 
-void PythonQtObjectPtr::setNewRef(PyObject* o)
-{
+void PythonQtObjectPtr::setNewRef(PyObject* o) {
   if (o != _object) {
     Py_XSETREF(_object, o);
   }
 }
 
-bool PythonQtObjectPtr::fromVariant(const QVariant& variant) 
-{
+bool PythonQtObjectPtr::fromVariant(const QVariant& variant) {
   if (!variant.isNull()) {
     PyObject* object = nullptr;
     if (PythonQt::priv()->isPythonQtSafeObjectPtrMetaId(variant.userType())) {
@@ -130,27 +98,20 @@ bool PythonQtObjectPtr::fromVariant(const QVariant& variant)
     }
     setObject(object);
     return true;
-  }
-  else {
+  } else {
     setObject(nullptr);
     return false;
-  } 
+  }
 }
 
-QVariant PythonQtObjectPtr::toVariant()
-{
-  return QVariant::fromValue(PythonQtSafeObjectPtr(*this));
-}
+QVariant PythonQtObjectPtr::toVariant() { return QVariant::fromValue(PythonQtSafeObjectPtr(*this)); }
 
-
-PythonQtObjectPtr & PythonQtObjectPtr::operator=(PythonQtSafeObjectPtr &&p)
-{
+PythonQtObjectPtr& PythonQtObjectPtr::operator=(PythonQtSafeObjectPtr&& p) {
   Py_XSETREF(_object, p.takeObject());
   return *this;
 }
 
-void PythonQtObjectPtr::setObject(PyObject* o)
-{
+void PythonQtObjectPtr::setObject(PyObject* o) {
   if (o != _object) {
     Py_XINCREF(o);
     Py_XSETREF(_object, o);
@@ -159,8 +120,7 @@ void PythonQtObjectPtr::setObject(PyObject* o)
 
 //------------------------------------------------------------------------------
 
-PythonQtSafeObjectPtr::PythonQtSafeObjectPtr(PyObject* o)
-{
+PythonQtSafeObjectPtr::PythonQtSafeObjectPtr(PyObject* o) {
   _object = o;
   if (o) {
     PYTHONQT_GIL_SCOPE
@@ -168,16 +128,14 @@ PythonQtSafeObjectPtr::PythonQtSafeObjectPtr(PyObject* o)
   }
 }
 
-PythonQtSafeObjectPtr::~PythonQtSafeObjectPtr()
-{
+PythonQtSafeObjectPtr::~PythonQtSafeObjectPtr() {
   if (_object) {
     PYTHONQT_GIL_SCOPE
     Py_DECREF(_object);
   }
 }
 
-void PythonQtSafeObjectPtr::setObject(PyObject* o)
-{
+void PythonQtSafeObjectPtr::setObject(PyObject* o) {
   if (o != _object) {
     PYTHONQT_GIL_SCOPE
     Py_XINCREF(o);
@@ -185,21 +143,16 @@ void PythonQtSafeObjectPtr::setObject(PyObject* o)
   }
 }
 
-void PythonQtSafeObjectPtr::setObjectUnsafe(PyObject* o)
-{
+void PythonQtSafeObjectPtr::setObjectUnsafe(PyObject* o) {
   if (o != _object) {
     Py_XINCREF(o);
     Py_XSETREF(_object, o);
   }
 }
 
-
 //--------------------------------------------------------------------------
 
 // we do this here to allow toLocalVariant() to create a QVariant
 Q_DECLARE_METATYPE(PythonQtObjectPtr)
 
-QVariant PythonQtObjectPtr::toLocalVariant()
-{
-  return QVariant::fromValue(PythonQtSafeObjectPtr(*this));
-}
+QVariant PythonQtObjectPtr::toLocalVariant() { return QVariant::fromValue(PythonQtSafeObjectPtr(*this)); }

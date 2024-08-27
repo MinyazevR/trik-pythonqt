@@ -53,9 +53,9 @@
 #include <QFileInfo>
 #include <fcntl.h>
 
-#define IS_SOURCE   0x0
+#define IS_SOURCE 0x0
 #define IS_BYTECODE 0x1
-#define IS_PACKAGE  0x2
+#define IS_PACKAGE 0x2
 
 struct st_mlab_searchorder {
   char suffix[14];
@@ -67,147 +67,129 @@ struct st_mlab_searchorder {
    non-package .pyc, .pyo and .py entries. The .pyc and .pyo entries
    are swapped by initmlabimport() if we run in optimized mode. Also,
    '/' is replaced by SEP there. */
- struct st_mlab_searchorder mlab_searchorder[] = {
-  {"/__init__.pyc", IS_PACKAGE | IS_BYTECODE},
-  {"/__init__.pyo", IS_PACKAGE | IS_BYTECODE},
-  {"/__init__.py", IS_PACKAGE | IS_SOURCE},
-  {".pyc", IS_BYTECODE},
-  {".pyo", IS_BYTECODE},
-  {".py", IS_SOURCE},
-  {"", 0}
-};
+struct st_mlab_searchorder mlab_searchorder[] = {{"/__init__.pyc", IS_PACKAGE | IS_BYTECODE},
+                                                 {"/__init__.pyo", IS_PACKAGE | IS_BYTECODE},
+                                                 {"/__init__.py", IS_PACKAGE | IS_SOURCE},
+                                                 {".pyc", IS_BYTECODE},
+                                                 {".pyo", IS_BYTECODE},
+                                                 {".py", IS_SOURCE},
+                                                 {"", 0}};
 
 extern PyTypeObject PythonQtImporter_Type;
-PyObject *PythonQtImportError;
+PyObject* PythonQtImportError;
 
-QString PythonQtImport::getSubName(const QString& str)
-{
+QString PythonQtImport::getSubName(const QString& str) {
   int idx = str.lastIndexOf('.');
-  if (idx!=-1) {
-	return str.mid(idx+1);
+  if (idx != -1) {
+    return str.mid(idx + 1);
   } else {
-	return str;
+    return str;
   }
 }
 
-PythonQtImport::ModuleInfo PythonQtImport::getModuleInfo(PythonQtImporter* self, const QString& fullname)
-{
+PythonQtImport::ModuleInfo PythonQtImport::getModuleInfo(PythonQtImporter* self, const QString& fullname) {
   ModuleInfo info;
   QString subname;
-  struct st_mlab_searchorder *zso;
+  struct st_mlab_searchorder* zso;
 
   subname = getSubName(fullname);
   QString path = *self->_path + "/" + subname;
 
   QString test;
   // test if it is a shared library (they have precedence over *.py files and this is used in eggs)
-  Q_FOREACH(const QString& suffix, PythonQt::priv()->sharedLibrarySuffixes()) {
-	test = path + suffix;
-	if (PythonQt::importInterface()->exists(test)) {
-	  info.fullPath = test;
-	  info.moduleName = subname;
-	  info.type = MI_SHAREDLIBRARY;
-	  return info;
-	}
+  Q_FOREACH (const QString& suffix, PythonQt::priv()->sharedLibrarySuffixes()) {
+    test = path + suffix;
+    if (PythonQt::importInterface()->exists(test)) {
+      info.fullPath = test;
+      info.moduleName = subname;
+      info.type = MI_SHAREDLIBRARY;
+      return info;
+    }
   }
   for (zso = mlab_searchorder; *zso->suffix; zso++) {
-	test = path + zso->suffix;
-	if (PythonQt::importInterface()->exists(test)) {
-	  info.fullPath = test;
-	  info.moduleName = subname;
-	  info.type = (zso->type & IS_PACKAGE)?MI_PACKAGE:MI_MODULE;
-	  return info;
-	}
+    test = path + zso->suffix;
+    if (PythonQt::importInterface()->exists(test)) {
+      info.fullPath = test;
+      info.moduleName = subname;
+      info.type = (zso->type & IS_PACKAGE) ? MI_PACKAGE : MI_MODULE;
+      return info;
+    }
   }
   return info;
 }
 
-
 /* PythonQtImporter.__init__
   Just store the path argument (or reject if it is in the ignorePaths list
 */
-int PythonQtImporter_init(PythonQtImporter *self, PyObject *args, PyObject * /*kwds*/)
-{
+int PythonQtImporter_init(PythonQtImporter* self, PyObject* args, PyObject* /*kwds*/) {
   self->_path = nullptr;
 
   const char* cpath;
-  if (!PyArg_ParseTuple(args, "s",
-	&cpath))
-	return -1;
+  if (!PyArg_ParseTuple(args, "s", &cpath))
+    return -1;
 
   QString path(cpath);
   if (PythonQt::importInterface()->exists(path)) {
-	if (PythonQt::importInterface()->isEggArchive(path)) {
-	  PyErr_SetString(PythonQtImportError,
-		  "path is an egg archive, which is unsupported by PythonQt");
-	  return -1;
-	} else {
-	  const QStringList& ignorePaths = PythonQt::self()->getImporterIgnorePaths();
-	  Q_FOREACH(QString ignorePath, ignorePaths) {
-		if (path.startsWith(ignorePath)) {
-		  PyErr_SetString(PythonQtImportError,
-			"path ignored");
-		  return -1;
-		}
-	  }
+    if (PythonQt::importInterface()->isEggArchive(path)) {
+      PyErr_SetString(PythonQtImportError, "path is an egg archive, which is unsupported by PythonQt");
+      return -1;
+    } else {
+      const QStringList& ignorePaths = PythonQt::self()->getImporterIgnorePaths();
+      Q_FOREACH (QString ignorePath, ignorePaths) {
+        if (path.startsWith(ignorePath)) {
+          PyErr_SetString(PythonQtImportError, "path ignored");
+          return -1;
+        }
+      }
 
-	  self->_path = new QString(path);
-	  return 0;
-	}
+      self->_path = new QString(path);
+      return 0;
+    }
   } else {
-	PyErr_SetString(PythonQtImportError,
-		"path does not exist error");
-	return -1;
+    PyErr_SetString(PythonQtImportError, "path does not exist error");
+    return -1;
   }
 }
 
-void
-PythonQtImporter_dealloc(PythonQtImporter *self)
-{
+void PythonQtImporter_dealloc(PythonQtImporter* self) {
   // free the stored path
-  if (self->_path) delete self->_path;
+  if (self->_path)
+    delete self->_path;
   // free ourself
-  Py_TYPE(self)->tp_free((PyObject *)self);
+  Py_TYPE(self)->tp_free((PyObject*)self);
 }
-
 
 /* Check whether we can satisfy the import of the module named by
    'fullname'. Return self if we can, None if we can't. */
-PyObject *
-PythonQtImporter_find_module(PyObject *obj, PyObject *args)
-{
-  PythonQtImporter *self = (PythonQtImporter *)obj;
-  PyObject *path = nullptr;
-  char *fullname;
+PyObject* PythonQtImporter_find_module(PyObject* obj, PyObject* args) {
+  PythonQtImporter* self = (PythonQtImporter*)obj;
+  PyObject* path = nullptr;
+  char* fullname;
 
-  if (!PyArg_ParseTuple(args, "s|O:PythonQtImporter.find_module",
-			&fullname, &path))
+  if (!PyArg_ParseTuple(args, "s|O:PythonQtImporter.find_module", &fullname, &path))
     return nullptr;
 
   //qDebug() << "looking for " << fullname << " at " << *self->_path;
 
   PythonQtImport::ModuleInfo info = PythonQtImport::getModuleInfo(self, fullname);
   if (info.type != PythonQtImport::MI_NOT_FOUND) {
-	Py_INCREF(self);
-	return (PyObject *)self;
+    Py_INCREF(self);
+    return (PyObject*)self;
   } else {
-	Py_INCREF(Py_None);
-	return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
   }
 }
 
-PyObject *
-PythonQtImporter_iter_modules(PyObject *obj, PyObject *args)
-{
+PyObject* PythonQtImporter_iter_modules(PyObject* obj, PyObject* args) {
   // The pkgutil.iter_modules expects an importer to implement
   // "iter_modules"... We use the generic ImpImporter to handle that.
   // This is needed for import completion of the jedi library.
   const char* prefix;
-  if (!PyArg_ParseTuple(args, "|s",
-	&prefix)) {
+  if (!PyArg_ParseTuple(args, "|s", &prefix)) {
     return nullptr;
   }
-  PythonQtImporter *self = (PythonQtImporter *)obj;
+  PythonQtImporter* self = (PythonQtImporter*)obj;
   PythonQtObjectPtr pkgutil = PythonQt::self()->importModule("pkgutil");
   PythonQtObjectPtr importer = pkgutil.call("ImpImporter", QVariantList() << *self->_path);
   PythonQtObjectPtr result = importer.call("iter_modules", QVariantList() << QString::fromUtf8(prefix));
@@ -217,15 +199,12 @@ PythonQtImporter_iter_modules(PyObject *obj, PyObject *args)
 }
 
 /* Load and return the module named by 'fullname'. */
-PyObject *
-PythonQtImporter_load_module(PyObject *obj, PyObject *args)
-{
-  PythonQtImporter *self = (PythonQtImporter *)obj;
+PyObject* PythonQtImporter_load_module(PyObject* obj, PyObject* args) {
+  PythonQtImporter* self = (PythonQtImporter*)obj;
   PyObject *code = nullptr, *mod = nullptr, *dict = nullptr;
-  char *fullname;
+  char* fullname;
 
-  if (!PyArg_ParseTuple(args, "s:PythonQtImporter.load_module",
-			&fullname))
+  if (!PyArg_ParseTuple(args, "s:PythonQtImporter.load_module", &fullname))
     return nullptr;
 
   PythonQtImport::ModuleInfo info = PythonQtImport::getModuleInfo(self, fullname);
@@ -234,170 +213,158 @@ PythonQtImporter_load_module(PyObject *obj, PyObject *args)
   }
 
   if (info.type == PythonQtImport::MI_PACKAGE || info.type == PythonQtImport::MI_MODULE) {
-	QString fullPath;
-	QString fullCachePath;
-	code = PythonQtImport::getModuleCode(self, fullname, fullPath, fullCachePath);
+    QString fullPath;
+    QString fullCachePath;
+    code = PythonQtImport::getModuleCode(self, fullname, fullPath, fullCachePath);
     if (code == nullptr) {
       return nullptr;
-	}
+    }
 
-	mod = PyImport_AddModule(fullname);
+    mod = PyImport_AddModule(fullname);
     if (mod == nullptr) {
-	  Py_DECREF(code);
-	  return nullptr;
-	}
-	dict = PyModule_GetDict(mod);
+      Py_DECREF(code);
+      return nullptr;
+    }
+    dict = PyModule_GetDict(mod);
 
-	if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0) {
-	  Py_DECREF(code);
-	  Py_DECREF(mod);
-	  return nullptr;
-	}
+    if (PyDict_SetItemString(dict, "__loader__", (PyObject*)self) != 0) {
+      Py_DECREF(code);
+      Py_DECREF(mod);
+      return nullptr;
+    }
 
-	if (info.type == PythonQtImport::MI_PACKAGE) {
-	  PyObject *pkgpath, *fullpath;
-	  QString subname = info.moduleName;
-	  int err;
+    if (info.type == PythonQtImport::MI_PACKAGE) {
+      PyObject *pkgpath, *fullpath;
+      QString subname = info.moduleName;
+      int err;
 
-	  fullpath = PyString_FromFormat("%s%c%s",
-									 QStringToPythonConstCharPointer(*self->_path),
-									 SEP,
-									 QStringToPythonConstCharPointer(subname));
-	  if (fullpath == nullptr) {
-		Py_DECREF(code);
-		Py_DECREF(mod);
-		return nullptr;
-	  }
+      fullpath =
+          PyString_FromFormat("%s%c%s", QStringToPythonConstCharPointer(*self->_path), SEP, QStringToPythonConstCharPointer(subname));
+      if (fullpath == nullptr) {
+        Py_DECREF(code);
+        Py_DECREF(mod);
+        return nullptr;
+      }
 
-	  pkgpath = Py_BuildValue("[O]", fullpath);
-	  Py_DECREF(fullpath);
-	  if (pkgpath == nullptr) {
-		Py_DECREF(code);
-		Py_DECREF(mod);
-		return nullptr;
-	  }
-	  err = PyDict_SetItemString(dict, "__path__", pkgpath);
-	  Py_DECREF(pkgpath);
-	  if (err != 0) {
-		Py_DECREF(code);
-		Py_DECREF(mod);
-		return nullptr;
-	  }
+      pkgpath = Py_BuildValue("[O]", fullpath);
+      Py_DECREF(fullpath);
+      if (pkgpath == nullptr) {
+        Py_DECREF(code);
+        Py_DECREF(mod);
+        return nullptr;
+      }
+      err = PyDict_SetItemString(dict, "__path__", pkgpath);
+      Py_DECREF(pkgpath);
+      if (err != 0) {
+        Py_DECREF(code);
+        Py_DECREF(mod);
+        return nullptr;
+      }
 
-	  // set __package__ only for Python 3, because in Python 2 it causes the exception "__package__ set to non-string"
+      // set __package__ only for Python 3, because in Python 2 it causes the exception "__package__ set to non-string"
 #ifdef PY3K
-	  // The package attribute is needed to resolve the package name if it is referenced as '.'. For example,
-	  // when importing the encodings package, there is an import statement 'from . import aliases'. This import
-	  // would fail when reloading the encodings package with importlib.
-	  err = PyDict_SetItemString(dict, "__package__", PyUnicode_FromString(fullname));
-	  if (err != 0) {
-		Py_DECREF(code);
-		Py_DECREF(mod);
-		return nullptr;
-	  }
+      // The package attribute is needed to resolve the package name if it is referenced as '.'. For example,
+      // when importing the encodings package, there is an import statement 'from . import aliases'. This import
+      // would fail when reloading the encodings package with importlib.
+      err = PyDict_SetItemString(dict, "__package__", PyUnicode_FromString(fullname));
+      if (err != 0) {
+        Py_DECREF(code);
+        Py_DECREF(mod);
+        return nullptr;
+      }
 #endif
-	}
+    }
 
 #ifdef PY3K
-	PyObject* fullnameObj = PyUnicode_FromString(fullname);
-	PyObject* fullPathObj = PythonQtConv::QStringToPyObject(fullPath);
-	PyObject* fullCachePathObj = !fullCachePath.isEmpty() ? PythonQtConv::QStringToPyObject(fullCachePath) : nullptr;
-	mod = PyImport_ExecCodeModuleObject(fullnameObj, code, fullPathObj, fullCachePathObj);
-	Py_XDECREF(fullnameObj);
-	Py_XDECREF(fullPathObj);
-	Py_XDECREF(fullCachePathObj);
+    PyObject* fullnameObj = PyUnicode_FromString(fullname);
+    PyObject* fullPathObj = PythonQtConv::QStringToPyObject(fullPath);
+    PyObject* fullCachePathObj = !fullCachePath.isEmpty() ? PythonQtConv::QStringToPyObject(fullCachePath) : nullptr;
+    mod = PyImport_ExecCodeModuleObject(fullnameObj, code, fullPathObj, fullCachePathObj);
+    Py_XDECREF(fullnameObj);
+    Py_XDECREF(fullPathObj);
+    Py_XDECREF(fullCachePathObj);
 #else
-	mod = PyImport_ExecCodeModuleEx(fullname, code, fullPath.toLatin1().data());
+    mod = PyImport_ExecCodeModuleEx(fullname, code, fullPath.toLatin1().data());
 #endif
-	if (PythonQt::importInterface()) {
-	  PythonQt::importInterface()->importedModule(fullname);
-	}
+    if (PythonQt::importInterface()) {
+      PythonQt::importInterface()->importedModule(fullname);
+    }
 
-	Py_DECREF(code);
-	if (Py_VerboseFlag) {
-	  PySys_WriteStderr("import %s # loaded from %s\n",
-		fullname, QStringToPythonConstCharPointer(fullPath));
-	}
+    Py_DECREF(code);
+    if (Py_VerboseFlag) {
+      PySys_WriteStderr("import %s # loaded from %s\n", fullname, QStringToPythonConstCharPointer(fullPath));
+    }
   } else {
-	PythonQtObjectPtr imp;
-	imp.setNewRef(PyImport_ImportModule("imp"));
+    PythonQtObjectPtr imp;
+    imp.setNewRef(PyImport_ImportModule("imp"));
 
-	// Create a PyList with the current path as its single element,
-	// which is required for find_module (it won't accept a tuple...)
-	PythonQtObjectPtr pathList;
-	pathList.setNewRef(PythonQtConv::QStringListToPyList(QStringList() << *self->_path));
+    // Create a PyList with the current path as its single element,
+    // which is required for find_module (it won't accept a tuple...)
+    PythonQtObjectPtr pathList;
+    pathList.setNewRef(PythonQtConv::QStringListToPyList(QStringList() << *self->_path));
 
-	QVariantList args;
-	// Pass the module name without the package prefix
-	args.append(info.moduleName);
-	// And the path where we know that the shared library is
-	args.append(pathList.toLocalVariant());
-	QVariant result = imp.call("find_module", args);
-	if (result.isValid()) {
-	  // This will return a tuple with (file, pathname, description=(suffix,mode,type))
-	  QVariantList list = result.toList();
-	  if (list.count()==3) {
-		// We prepend the full module name (including package prefix)
-		list.prepend(fullname);
+    QVariantList args;
+    // Pass the module name without the package prefix
+    args.append(info.moduleName);
+    // And the path where we know that the shared library is
+    args.append(pathList.toLocalVariant());
+    QVariant result = imp.call("find_module", args);
+    if (result.isValid()) {
+      // This will return a tuple with (file, pathname, description=(suffix,mode,type))
+      QVariantList list = result.toList();
+      if (list.count() == 3) {
+        // We prepend the full module name (including package prefix)
+        list.prepend(fullname);
 #ifdef __linux
   #ifdef _DEBUG
-		// imp_find_module() does not respect the debug suffix '_d' on Linux,
-		// so it does not return the correct file path and we correct it now
-		// find_module opened a file to the release library, but that file handle is
-		// ignored on Linux and Windows, maybe on MacOS also.
-		list[2] = info.fullPath;
+        // imp_find_module() does not respect the debug suffix '_d' on Linux,
+        // so it does not return the correct file path and we correct it now
+        // find_module opened a file to the release library, but that file handle is
+        // ignored on Linux and Windows, maybe on MacOS also.
+        list[2] = info.fullPath;
   #endif
 #endif
-		// And call "load_module" with (fullname, file, pathname, description=(suffix,mode,type))
-		PythonQtObjectPtr module = imp.call("load_module", list);
-		mod = module.object();
-		if (mod) {
-		  Py_INCREF(mod);
-		}
+        // And call "load_module" with (fullname, file, pathname, description=(suffix,mode,type))
+        PythonQtObjectPtr module = imp.call("load_module", list);
+        mod = module.object();
+        if (mod) {
+          Py_INCREF(mod);
+        }
 
-		// Finally, we need to close the file again, which find_module opened for us
-		PythonQtObjectPtr file = list.at(1);
-		file.call("close");
-	  }
-	} else {
-	  PyErr_Format(PythonQtImportError, "can't find module '%s'",
-				   qPrintable(info.moduleName));
-	}
+        // Finally, we need to close the file again, which find_module opened for us
+        PythonQtObjectPtr file = list.at(1);
+        file.call("close");
+      }
+    } else {
+      PyErr_Format(PythonQtImportError, "can't find module '%s'", qPrintable(info.moduleName));
+    }
   }
   return mod;
 }
 
-
-PyObject *
-PythonQtImporter_get_data(PyObject* /*obj*/, PyObject* /*args*/)
-{
+PyObject* PythonQtImporter_get_data(PyObject* /*obj*/, PyObject* /*args*/) {
   // EXTRA, NOT YET IMPLEMENTED
   return nullptr;
 }
 
-PyObject *
-PythonQtImporter_get_code(PyObject *obj, PyObject *args)
-{
-  PythonQtImporter *self = (PythonQtImporter *)obj;
-  char *fullname;
+PyObject* PythonQtImporter_get_code(PyObject* obj, PyObject* args) {
+  PythonQtImporter* self = (PythonQtImporter*)obj;
+  char* fullname;
 
   if (!PyArg_ParseTuple(args, "s:PythonQtImporter.get_code", &fullname))
-	return nullptr;
+    return nullptr;
 
   QString notused;
   QString notused2;
   return PythonQtImport::getModuleCode(self, fullname, notused, notused2);
 }
 
-PyObject *
-PythonQtImporter_get_source(PyObject * /*obj*/, PyObject * /*args*/)
-{
+PyObject* PythonQtImporter_get_source(PyObject* /*obj*/, PyObject* /*args*/) {
   // EXTRA, NOT YET IMPLEMENTED
   return nullptr;
 }
 
-PyDoc_STRVAR(doc_find_module,
-"find_module(fullname, path=None) -> self or None.\n\
+PyDoc_STRVAR(doc_find_module, "find_module(fullname, path=None) -> self or None.\n\
 \n\
 Search for a module specified by 'fullname'. 'fullname' must be the\n\
 fully qualified (dotted) module name. It returns the PythonQtImporter\n\
@@ -405,54 +372,41 @@ instance itself if the module was found, or None if it wasn't.\n\
 The optional 'path' argument is ignored -- it's there for compatibility\n\
 with the importer protocol.");
 
-PyDoc_STRVAR(doc_load_module,
-"load_module(fullname) -> module.\n\
+PyDoc_STRVAR(doc_load_module, "load_module(fullname) -> module.\n\
 \n\
 Load the module specified by 'fullname'. 'fullname' must be the\n\
 fully qualified (dotted) module name. It returns the imported\n\
 module, or raises PythonQtImportError if it wasn't found.");
 
-PyDoc_STRVAR(doc_get_data,
-"get_data(pathname) -> string with file data.\n\
+PyDoc_STRVAR(doc_get_data, "get_data(pathname) -> string with file data.\n\
 \n\
 Return the data associated with 'pathname'. Raise IOError if\n\
 the file wasn't found.");
 
-PyDoc_STRVAR(doc_get_code,
-"get_code(fullname) -> code object.\n\
+PyDoc_STRVAR(doc_get_code, "get_code(fullname) -> code object.\n\
 \n\
 Return the code object for the specified module. Raise PythonQtImportError\n\
 is the module couldn't be found.");
 
-PyDoc_STRVAR(doc_get_source,
-"get_source(fullname) -> source string.\n\
+PyDoc_STRVAR(doc_get_source, "get_source(fullname) -> source string.\n\
 \n\
 Return the source code for the specified module. Raise PythonQtImportError\n\
 is the module couldn't be found, return None if the archive does\n\
 contain the module, but has no source for it.");
 
-PyDoc_STRVAR(doc_iter_modules,
-			 "Needed for pkgutil");
+PyDoc_STRVAR(doc_iter_modules, "Needed for pkgutil");
 
 PyMethodDef PythonQtImporter_methods[] = {
-  {"find_module", PythonQtImporter_find_module, METH_VARARGS,
-   doc_find_module},
-  {"load_module", PythonQtImporter_load_module, METH_VARARGS,
-   doc_load_module},
-  {"iter_modules", PythonQtImporter_iter_modules, METH_VARARGS,
-  doc_iter_modules},
-  {"get_data", PythonQtImporter_get_data, METH_VARARGS,
-   doc_get_data},
-  {"get_code", PythonQtImporter_get_code, METH_VARARGS,
-   doc_get_code},
-  {"get_source", PythonQtImporter_get_source, METH_VARARGS,
-   doc_get_source},
-  {nullptr,    nullptr, 0 , nullptr} /* sentinel */
+    {"find_module", PythonQtImporter_find_module, METH_VARARGS, doc_find_module},
+    {"load_module", PythonQtImporter_load_module, METH_VARARGS, doc_load_module},
+    {"iter_modules", PythonQtImporter_iter_modules, METH_VARARGS, doc_iter_modules},
+    {"get_data", PythonQtImporter_get_data, METH_VARARGS, doc_get_data},
+    {"get_code", PythonQtImporter_get_code, METH_VARARGS, doc_get_code},
+    {"get_source", PythonQtImporter_get_source, METH_VARARGS, doc_get_source},
+    {nullptr, nullptr, 0, nullptr} /* sentinel */
 };
 
-
-PyDoc_STRVAR(PythonQtImporter_doc,
-"PythonQtImporter(path) -> PythonQtImporter object\n\
+PyDoc_STRVAR(PythonQtImporter_doc, "PythonQtImporter(path) -> PythonQtImporter object\n\
 \n\
 Create a new PythonQtImporter instance. 'path' must be a valid path on disk/or inside of a zip file known to MeVisLab\n\
 . Every path is accepted.");
@@ -460,68 +414,64 @@ Create a new PythonQtImporter instance. 'path' must be a valid path on disk/or i
 #define DEFERRED_ADDRESS(ADDR) nullptr
 
 PyTypeObject PythonQtImporter_Type = {
-  PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0)
-  "PythonQtImport.PythonQtImporter",
-  sizeof(PythonQtImporter),
-  0,          /* tp_itemsize */
-  (destructor)PythonQtImporter_dealloc, /* tp_dealloc */
-  0,          /* tp_print */
-  nullptr,                  /* tp_getattr */
-  nullptr,                  /* tp_setattr */
-  nullptr,                  /* tp_compare */
-  nullptr,                  /* tp_repr */
-  nullptr,                  /* tp_as_number */
-  nullptr,                  /* tp_as_sequence */
-  nullptr,                  /* tp_as_mapping */
-  nullptr,                  /* tp_hash */
-  nullptr,                  /* tp_call */
-  nullptr,                  /* tp_str */
-  PyObject_GenericGetAttr,    /* tp_getattro */
-  nullptr,                  /* tp_setattro */
-  nullptr,                  /* tp_as_buffer */
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE ,    /* tp_flags */
-  PythonQtImporter_doc,     /* tp_doc */
-  nullptr,                  /* tp_traverse */
-  nullptr,                  /* tp_clear */
-  nullptr,                  /* tp_richcompare */
-  0,      /* tp_traverse */
-  nullptr,                  /* tp_iter */
-  nullptr,                  /* tp_iternext */
-  PythonQtImporter_methods,     /* tp_methods */
-  nullptr,                  /* tp_members */
-  nullptr,                  /* tp_getset */
-  nullptr,                  /* tp_base */
-  nullptr,                  /* tp_dict */
-  nullptr,                  /* tp_descr_get */
-  nullptr,                  /* tp_descr_set */
-  0,          /* tp_dictoffset */
-  (initproc)PythonQtImporter_init,    /* tp_init */
-  PyType_GenericAlloc,      /* tp_alloc */
-  PyType_GenericNew,      /* tp_new */
-  PyObject_Del,     /* tp_free */
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
+    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0) "PythonQtImport.PythonQtImporter",
+    sizeof(PythonQtImporter),
+    0,                                        /* tp_itemsize */
+    (destructor)PythonQtImporter_dealloc,     /* tp_dealloc */
+    0,                                        /* tp_print */
+    nullptr,                                  /* tp_getattr */
+    nullptr,                                  /* tp_setattr */
+    nullptr,                                  /* tp_compare */
+    nullptr,                                  /* tp_repr */
+    nullptr,                                  /* tp_as_number */
+    nullptr,                                  /* tp_as_sequence */
+    nullptr,                                  /* tp_as_mapping */
+    nullptr,                                  /* tp_hash */
+    nullptr,                                  /* tp_call */
+    nullptr,                                  /* tp_str */
+    PyObject_GenericGetAttr,                  /* tp_getattro */
+    nullptr,                                  /* tp_setattro */
+    nullptr,                                  /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    PythonQtImporter_doc,                     /* tp_doc */
+    nullptr,                                  /* tp_traverse */
+    nullptr,                                  /* tp_clear */
+    nullptr,                                  /* tp_richcompare */
+    0,                                        /* tp_traverse */
+    nullptr,                                  /* tp_iter */
+    nullptr,                                  /* tp_iternext */
+    PythonQtImporter_methods,                 /* tp_methods */
+    nullptr,                                  /* tp_members */
+    nullptr,                                  /* tp_getset */
+    nullptr,                                  /* tp_base */
+    nullptr,                                  /* tp_dict */
+    nullptr,                                  /* tp_descr_get */
+    nullptr,                                  /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)PythonQtImporter_init,          /* tp_init */
+    PyType_GenericAlloc,                      /* tp_alloc */
+    PyType_GenericNew,                        /* tp_new */
+    PyObject_Del,                             /* tp_free */
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 #ifdef PY3K
-		0,
+    0,
 #endif
 };
-
 
 /* Given a buffer, return the long that is represented by the first
    4 bytes, encoded as little endian. This partially reimplements
    marshal.c:r_long() */
-long
-PythonQtImport::getLong(unsigned char *buf)
-{
+long PythonQtImport::getLong(unsigned char* buf) {
   long x;
-  x =  buf[0];
-  x |= (long)buf[1] <<  8;
+  x = buf[0];
+  x |= (long)buf[1] << 8;
   x |= (long)buf[2] << 16;
   x |= (long)buf[3] << 24;
 #if SIZEOF_LONG > 4
@@ -531,10 +481,8 @@ PythonQtImport::getLong(unsigned char *buf)
   return x;
 }
 
-FILE *
-open_exclusive(const QString& filename)
-{
-#if defined(O_EXCL)&&defined(O_CREAT)&&defined(O_WRONLY)&&defined(O_TRUNC)
+FILE* open_exclusive(const QString& filename) {
+#if defined(O_EXCL) && defined(O_CREAT) && defined(O_WRONLY) && defined(O_TRUNC)
   /* Use O_EXCL to avoid a race condition when another process tries to
 	 write the same file.  When that happens, our open() call fails,
 	 which is just fine (since it's only a cache).
@@ -544,17 +492,17 @@ open_exclusive(const QString& filename)
   QFile::remove(filename);
 
   int fd;
-  int flags = O_EXCL|O_CREAT|O_WRONLY|O_TRUNC;
-#ifdef O_BINARY
-	flags |= O_BINARY;   /* necessary for Windows */
-#endif
-#ifdef WIN32
-  fd = _wopen((const wchar_t*)filename.utf16(), flags, S_IREAD|S_IWRITE);
-#else
+  int flags = O_EXCL | O_CREAT | O_WRONLY | O_TRUNC;
+  #ifdef O_BINARY
+  flags |= O_BINARY; /* necessary for Windows */
+  #endif
+  #ifdef WIN32
+  fd = _wopen((const wchar_t*)filename.utf16(), flags, S_IREAD | S_IWRITE);
+  #else
   fd = open(filename.toLocal8Bit(), flags, 0666);
-#endif
+  #endif
   if (fd < 0)
-	return nullptr;
+    return nullptr;
   return fdopen(fd, "wb");
 #else
   /* Best we can do -- on Windows this can't happen anyway */
@@ -562,20 +510,17 @@ open_exclusive(const QString& filename)
 #endif
 }
 
-
-void PythonQtImport::writeCompiledModule(PyCodeObject *co, const QString& filename, long mtime, long sourceSize)
-{
-  FILE *fp;
+void PythonQtImport::writeCompiledModule(PyCodeObject* co, const QString& filename, long mtime, long sourceSize) {
+  FILE* fp;
   // we do not want to write Qt resources to disk, do we?
   if (filename.startsWith(":")) {
-	return;
+    return;
   }
   fp = open_exclusive(filename);
   if (fp == nullptr) {
-	if (Py_VerboseFlag)
-	  PySys_WriteStderr(
-	  "# can't create %s\n", QStringToPythonConstCharPointer(filename));
-	return;
+    if (Py_VerboseFlag)
+      PySys_WriteStderr("# can't create %s\n", QStringToPythonConstCharPointer(filename));
+    return;
   }
 #if PY_VERSION_HEX < 0x02040000
   PyMarshal_WriteLongToFile(PyImport_GetMagicNumber(), fp);
@@ -594,17 +539,17 @@ void PythonQtImport::writeCompiledModule(PyCodeObject *co, const QString& filena
   Q_UNUSED(sourceSize)
 #endif
 #if PY_VERSION_HEX < 0x02040000
-  PyMarshal_WriteObjectToFile((PyObject *)co, fp);
+  PyMarshal_WriteObjectToFile((PyObject*)co, fp);
 #else
-  PyMarshal_WriteObjectToFile((PyObject *)co, fp, Py_MARSHAL_VERSION);
+  PyMarshal_WriteObjectToFile((PyObject*)co, fp, Py_MARSHAL_VERSION);
 #endif
   if (ferror(fp)) {
-	if (Py_VerboseFlag)
-	  PySys_WriteStderr("# can't write %s\n", QStringToPythonConstCharPointer(filename));
-	/* Don't keep partial file */
-	fclose(fp);
-	QFile::remove(filename);
-	return;
+    if (Py_VerboseFlag)
+      PySys_WriteStderr("# can't write %s\n", QStringToPythonConstCharPointer(filename));
+    /* Don't keep partial file */
+    fclose(fp);
+    QFile::remove(filename);
+    return;
   }
   /* Now write the true mtime */
   fseek(fp, 4L, 0);
@@ -616,7 +561,7 @@ void PythonQtImport::writeCompiledModule(PyCodeObject *co, const QString& filena
   fflush(fp);
   fclose(fp);
   if (Py_VerboseFlag) {
-	PySys_WriteStderr("# wrote %s\n", QStringToPythonConstCharPointer(filename));
+    PySys_WriteStderr("# wrote %s\n", QStringToPythonConstCharPointer(filename));
   }
 }
 
@@ -625,44 +570,41 @@ void PythonQtImport::writeCompiledModule(PyCodeObject *co, const QString& filena
    match (we do this instead of raising an exception as we fall back
    to .py if available and we don't want to mask other errors).
    Returns a new reference. */
-PyObject *
-PythonQtImport::unmarshalCode(const QString& path, const QByteArray& data, time_t mtime)
-{
-  PyObject *code;
+PyObject* PythonQtImport::unmarshalCode(const QString& path, const QByteArray& data, time_t mtime) {
+  PyObject* code;
   // ugly cast, but Python API is not const safe
-  char *buf = (char*) data.constData();
+  char* buf = (char*)data.constData();
   int size = data.size();
 
   if (size <= 9) {
-	PySys_WriteStderr("# %s has bad pyc data\n",
-					  QStringToPythonConstCharPointer(path));
-	Py_INCREF(Py_None);
-	return Py_None;
+    PySys_WriteStderr("# %s has bad pyc data\n", QStringToPythonConstCharPointer(path));
+    Py_INCREF(Py_None);
+    return Py_None;
   }
 
-  if (getLong((unsigned char *)buf) != PyImport_GetMagicNumber()) {
-	if (Py_VerboseFlag)
-	  PySys_WriteStderr("# %s has bad magic\n",
-			QStringToPythonConstCharPointer(path));
-	Py_INCREF(Py_None);
-	return Py_None;
+  if (getLong((unsigned char*)buf) != PyImport_GetMagicNumber()) {
+    if (Py_VerboseFlag)
+      PySys_WriteStderr("# %s has bad magic\n", QStringToPythonConstCharPointer(path));
+    Py_INCREF(Py_None);
+    return Py_None;
   }
 
   if (mtime != 0) {
-	time_t timeDiff = getLong((unsigned char *)buf + 4) - mtime;
-	if (timeDiff<0) { timeDiff = -timeDiff; }
-	if (timeDiff > 1) {
-	  if (Py_VerboseFlag)
-		PySys_WriteStderr("# %s has bad mtime\n",
-		QStringToPythonConstCharPointer(path));
-	  Py_INCREF(Py_None);
-	  return Py_None;
-	}
+    time_t timeDiff = getLong((unsigned char*)buf + 4) - mtime;
+    if (timeDiff < 0) {
+      timeDiff = -timeDiff;
+    }
+    if (timeDiff > 1) {
+      if (Py_VerboseFlag)
+        PySys_WriteStderr("# %s has bad mtime\n", QStringToPythonConstCharPointer(path));
+      Py_INCREF(Py_None);
+      return Py_None;
+    }
   }
 
 #ifdef PY3K
   // Python 3 also stores the size of the *.py file, but we ignore it for now
-  int sourceSize = getLong((unsigned char *)buf + 8);
+  int sourceSize = getLong((unsigned char*)buf + 8);
   Q_UNUSED(sourceSize)
   // read the module
   code = PyMarshal_ReadObjectFromString(buf + 12, size - 12);
@@ -670,106 +612,92 @@ PythonQtImport::unmarshalCode(const QString& path, const QByteArray& data, time_
   code = PyMarshal_ReadObjectFromString(buf + 8, size - 8);
 #endif
   if (code == nullptr)
-	return nullptr;
+    return nullptr;
   if (!PyCode_Check(code)) {
-	Py_DECREF(code);
-	PyErr_Format(PyExc_TypeError,
-		 "compiled module %.200s is not a code object",
-		 QStringToPythonConstCharPointer(path));
-	return nullptr;
+    Py_DECREF(code);
+    PyErr_Format(PyExc_TypeError, "compiled module %.200s is not a code object", QStringToPythonConstCharPointer(path));
+    return nullptr;
   }
   return code;
 }
 
-
 /* Given a string buffer containing Python source code, compile it
    return and return a code object as a new reference. */
-PyObject *
-PythonQtImport::compileSource(const QString& path, const QByteArray& data)
-{
-  PyObject *code;
+PyObject* PythonQtImport::compileSource(const QString& path, const QByteArray& data) {
+  PyObject* code;
 #ifdef PY3K
   PyObject* filename = PythonQtConv::QStringToPyObject(path);
-  code = Py_CompileStringObject(data.data(), filename,
-								Py_file_input, nullptr, -1);
+  code = Py_CompileStringObject(data.data(), filename, Py_file_input, nullptr, -1);
   Py_DECREF(filename);
 #else
-  code = Py_CompileString(data.data(), QStringToPythonConstCharPointer(path),
-						  Py_file_input);
+  code = Py_CompileString(data.data(), QStringToPythonConstCharPointer(path), Py_file_input);
 #endif
   return code;
 }
 
-QString PythonQtImport::getCacheFilename(const QString& sourceFilename, bool isOptimizedFilename)
-{
+QString PythonQtImport::getCacheFilename(const QString& sourceFilename, bool isOptimizedFilename) {
   QString pycFilename = sourceFilename;
   return pycFilename + (isOptimizedFilename ? "o" : "c");
 }
 
-QString PythonQtImport::getSourceFilename(const QString& cacheFile)
-{
+QString PythonQtImport::getSourceFilename(const QString& cacheFile) {
   QString pyFilename;
   if (cacheFile.length() > 0) {
-	pyFilename = cacheFile;
-	pyFilename.truncate(pyFilename.length()-1);
+    pyFilename = cacheFile;
+    pyFilename.truncate(pyFilename.length() - 1);
   }
   return pyFilename;
 }
 
 /* Return the code object for the module named by 'fullname' from the
    Zip archive as a new reference. */
-PyObject *
-PythonQtImport::getCodeFromData(const QString& path, int isbytecode,int /*ispackage*/, time_t mtime)
-{
-  PyObject *code;
+PyObject* PythonQtImport::getCodeFromData(const QString& path, int isbytecode, int /*ispackage*/, time_t mtime) {
+  PyObject* code;
 
   QByteArray qdata;
-	if (!isbytecode) {
-	  //    mlabDebugConst("MLABPython", "reading source " << path);
-	  bool ok;
-	  qdata = PythonQt::importInterface()->readSourceFile(path, ok);
-	  if (!ok) {
-		//    mlabErrorConst("PythonQtImporter","File could not be verified" << path);
-		return nullptr;
-	  }
-	  if (qdata == " ") {
-		qdata.clear();
-	  }
-	} else {
-	  qdata = PythonQt::importInterface()->readFileAsBytes(path);
-	}
+  if (!isbytecode) {
+    //    mlabDebugConst("MLABPython", "reading source " << path);
+    bool ok;
+    qdata = PythonQt::importInterface()->readSourceFile(path, ok);
+    if (!ok) {
+      //    mlabErrorConst("PythonQtImporter","File could not be verified" << path);
+      return nullptr;
+    }
+    if (qdata == " ") {
+      qdata.clear();
+    }
+  } else {
+    qdata = PythonQt::importInterface()->readFileAsBytes(path);
+  }
 
   if (isbytecode) {
-	// mlabDebugConst("MLABPython", "reading bytecode " << path);
-	code = unmarshalCode(path, qdata, mtime);
-  }
-  else {
-  //  mlabDebugConst("MLABPython", "compiling source " << path);
-	code = compileSource(path, qdata);
-	if (code) {
-	  // save a pyc file if possible
-	  QDateTime time;
-	  time = PythonQt::importInterface()->lastModifiedDate(path);
-	  QString cacheFilename =  getCacheFilename(path, /*isOptimizedFilename=*/false);
-	#if !defined(WIN32) || defined(_MSC_VER)
-	  // If Python was build with MSVC, then we can crash on FILE* operations when compiling this code with GCC
-	  writeCompiledModule((PyCodeObject*)code, cacheFilename, time.toTime_t(), /*sourceSize=*/qdata.length());
-	#endif
-	}
+    // mlabDebugConst("MLABPython", "reading bytecode " << path);
+    code = unmarshalCode(path, qdata, mtime);
+  } else {
+    //  mlabDebugConst("MLABPython", "compiling source " << path);
+    code = compileSource(path, qdata);
+    if (code) {
+      // save a pyc file if possible
+      QDateTime time;
+      time = PythonQt::importInterface()->lastModifiedDate(path);
+      QString cacheFilename = getCacheFilename(path, /*isOptimizedFilename=*/false);
+#if !defined(WIN32) || defined(_MSC_VER)
+      // If Python was build with MSVC, then we can crash on FILE* operations when compiling this code with GCC
+      writeCompiledModule((PyCodeObject*)code, cacheFilename, time.toTime_t(), /*sourceSize=*/qdata.length());
+#endif
+    }
   }
   return code;
 }
 
-time_t
-PythonQtImport::getMTimeOfSource(const QString& path)
-{
+time_t PythonQtImport::getMTimeOfSource(const QString& path) {
   time_t mtime = 0;
   QString path2 = getSourceFilename(path);
   if (PythonQt::importInterface()->exists(path2)) {
-	QDateTime t = PythonQt::importInterface()->lastModifiedDate(path2);
-	if (t.isValid()) {
-	  mtime = t.toTime_t();
-	}
+    QDateTime t = PythonQt::importInterface()->lastModifiedDate(path2);
+    if (t.isValid()) {
+      mtime = t.toTime_t();
+    }
   }
 
   return mtime;
@@ -777,171 +705,160 @@ PythonQtImport::getMTimeOfSource(const QString& path)
 
 /* Get the code object associated with the module specified by
    'fullname'. */
-PyObject *
-PythonQtImport::getModuleCode(PythonQtImporter *self, const char* fullname, QString& modpath, QString& cachemodpath)
-{
+PyObject* PythonQtImport::getModuleCode(PythonQtImporter* self, const char* fullname, QString& modpath, QString& cachemodpath) {
   QString subname;
-  struct st_mlab_searchorder *zso;
+  struct st_mlab_searchorder* zso;
 
   subname = getSubName(fullname);
   QString path = *self->_path + "/" + subname;
 
   QString test;
-  for (zso = mlab_searchorder; *zso->suffix;zso++) {
-	PyObject *code = nullptr;
-	test = path + zso->suffix;
+  for (zso = mlab_searchorder; *zso->suffix; zso++) {
+    PyObject* code = nullptr;
+    test = path + zso->suffix;
 
-	if (Py_VerboseFlag > 1)
-	  PySys_WriteStderr("# trying %s\n",
-						QStringToPythonConstCharPointer(test));
-	if (PythonQt::importInterface()->exists(test)) {
-	  time_t mtime = 0;
-	  int ispackage = zso->type & IS_PACKAGE;
-	  int isbytecode = zso->type & IS_BYTECODE;
+    if (Py_VerboseFlag > 1)
+      PySys_WriteStderr("# trying %s\n", QStringToPythonConstCharPointer(test));
+    if (PythonQt::importInterface()->exists(test)) {
+      time_t mtime = 0;
+      int ispackage = zso->type & IS_PACKAGE;
+      int isbytecode = zso->type & IS_BYTECODE;
 
-	  // if ignoreUpdatedPythonSourceFiles() returns true, then mtime stays 0
-	  // and unmarshalCode() in getCodeFromData() will always read an existing *.pyc file,
-	  // even if a newer *.py file exists. This is a release optimization where
-	  // typically only *.pyc files are delivered without *.py files and reading file
-	  // modification time is slow.
-	  if (isbytecode && !PythonQt::importInterface()->ignoreUpdatedPythonSourceFiles()) {
-		mtime = getMTimeOfSource(test);
-	  }
-	  code = getCodeFromData(test, isbytecode, ispackage, mtime);
-	  if (code == Py_None) {
-		Py_DECREF(code);
-		continue;
-	  }
-	  if (code != nullptr) {
-		modpath = test;
+      // if ignoreUpdatedPythonSourceFiles() returns true, then mtime stays 0
+      // and unmarshalCode() in getCodeFromData() will always read an existing *.pyc file,
+      // even if a newer *.py file exists. This is a release optimization where
+      // typically only *.pyc files are delivered without *.py files and reading file
+      // modification time is slow.
+      if (isbytecode && !PythonQt::importInterface()->ignoreUpdatedPythonSourceFiles()) {
+        mtime = getMTimeOfSource(test);
+      }
+      code = getCodeFromData(test, isbytecode, ispackage, mtime);
+      if (code == Py_None) {
+        Py_DECREF(code);
+        continue;
+      }
+      if (code != nullptr) {
+        modpath = test;
 #ifdef PY3K
-		if (isbytecode) {
-		  cachemodpath = modpath;
-		  modpath = getSourceFilename(modpath);
-		}
+        if (isbytecode) {
+          cachemodpath = modpath;
+          modpath = getSourceFilename(modpath);
+        }
 #else
         Q_UNUSED(cachemodpath)
 #endif
-	  }
-	  return code;
-	}
+      }
+      return code;
+    }
   }
   PyErr_Format(PythonQtImportError, "can't find module '%.200s'", fullname);
 
   return nullptr;
 }
 
-QString PythonQtImport::replaceExtension(const QString& str, const QString& ext)
-{
- QString r;
- int i = str.lastIndexOf('.');
- if (i!=-1) {
-   r = str.mid(0,i) + "." + ext;
- } else {
-   r = str + "." + ext;
- }
- return r;
+QString PythonQtImport::replaceExtension(const QString& str, const QString& ext) {
+  QString r;
+  int i = str.lastIndexOf('.');
+  if (i != -1) {
+    r = str.mid(0, i) + "." + ext;
+  } else {
+    r = str + "." + ext;
+  }
+  return r;
 }
 
-PyObject* PythonQtImport::getCodeFromPyc(const QString& file)
-{
+PyObject* PythonQtImport::getCodeFromPyc(const QString& file) {
   PyObject* code;
   const static QString pycStr("pyc");
   QString pyc = replaceExtension(file, pycStr);
   if (PythonQt::importInterface()->exists(pyc)) {
-	time_t mtime = 0;
-	// if ignoreUpdatedPythonSourceFiles() returns true, then mtime stays 0
-	// and unmarshalCode() in getCodeFromData() will always read an existing *.pyc file,
-	// even if a newer *.py file exists. This is a release optimization where
-	// typically only *.pyc files are delivered without *.py files and reading file
-	// modification time is slow.
-	if (!PythonQt::importInterface()->ignoreUpdatedPythonSourceFiles()) {
-	  mtime = getMTimeOfSource(pyc);
-	}
-	code = getCodeFromData(pyc, true, false, mtime);
-	if (code != Py_None && code != nullptr) {
-	  return code;
-	}
-	if (code) {
-	  Py_DECREF(code);
-	}
+    time_t mtime = 0;
+    // if ignoreUpdatedPythonSourceFiles() returns true, then mtime stays 0
+    // and unmarshalCode() in getCodeFromData() will always read an existing *.pyc file,
+    // even if a newer *.py file exists. This is a release optimization where
+    // typically only *.pyc files are delivered without *.py files and reading file
+    // modification time is slow.
+    if (!PythonQt::importInterface()->ignoreUpdatedPythonSourceFiles()) {
+      mtime = getMTimeOfSource(pyc);
+    }
+    code = getCodeFromData(pyc, true, false, mtime);
+    if (code != Py_None && code != nullptr) {
+      return code;
+    }
+    if (code) {
+      Py_DECREF(code);
+    }
   }
-  code = getCodeFromData(file,false,false,0);
+  code = getCodeFromData(file, false, false, 0);
   return code;
 }
 
 /* Module init */
 
-PyDoc_STRVAR(mlabimport_doc,
-"Imports python files into PythonQt, completely replaces internal python import");
+PyDoc_STRVAR(mlabimport_doc, "Imports python files into PythonQt, completely replaces internal python import");
 
 #ifdef PY3K
 static struct PyModuleDef PythonQtImport_def = {
-	PyModuleDef_HEAD_INIT,
-	"PythonQtImport",   /* m_name */
-	mlabimport_doc,     /* m_doc */
-	-1,                 /* m_size */
-	nullptr,               /* m_methods */
-	nullptr,               /* m_reload */
-	nullptr,               /* m_traverse */
-	nullptr,               /* m_clear */
-	nullptr                /* m_free */
+    PyModuleDef_HEAD_INIT,
+    "PythonQtImport", /* m_name */
+    mlabimport_doc,   /* m_doc */
+    -1,               /* m_size */
+    nullptr,          /* m_methods */
+    nullptr,          /* m_reload */
+    nullptr,          /* m_traverse */
+    nullptr,          /* m_clear */
+    nullptr           /* m_free */
 };
 #endif
 
-void PythonQtImport::init()
-{
+void PythonQtImport::init() {
   static bool first = true;
   if (!first) {
-	return;
+    return;
   }
   first = false;
 
-  PyObject *mod;
+  PyObject* mod;
 
   if (PyType_Ready(&PythonQtImporter_Type) < 0)
-	return;
+    return;
 
   /* Correct directory separator */
   mlab_searchorder[0].suffix[0] = SEP;
   mlab_searchorder[1].suffix[0] = SEP;
   mlab_searchorder[2].suffix[0] = SEP;
   if (Py_OptimizeFlag) {
-	/* Reverse *.pyc and *.pyo */
-	struct st_mlab_searchorder tmp;
-	tmp = mlab_searchorder[0];
-	mlab_searchorder[0] = mlab_searchorder[1];
-	mlab_searchorder[1] = tmp;
-	tmp = mlab_searchorder[3];
-	mlab_searchorder[3] = mlab_searchorder[4];
-	mlab_searchorder[4] = tmp;
+    /* Reverse *.pyc and *.pyo */
+    struct st_mlab_searchorder tmp;
+    tmp = mlab_searchorder[0];
+    mlab_searchorder[0] = mlab_searchorder[1];
+    mlab_searchorder[1] = tmp;
+    tmp = mlab_searchorder[3];
+    mlab_searchorder[3] = mlab_searchorder[4];
+    mlab_searchorder[4] = tmp;
   }
 
 #ifdef PY3K
   mod = PyModule_Create(&PythonQtImport_def);
 #else
-  mod = Py_InitModule4("PythonQtImport", nullptr, mlabimport_doc,
-		   nullptr, PYTHON_API_VERSION);
+  mod = Py_InitModule4("PythonQtImport", nullptr, mlabimport_doc, nullptr, PYTHON_API_VERSION);
 #endif
 
-  PythonQtImportError = PyErr_NewException(const_cast<char*>("PythonQtImport.PythonQtImportError"),
-			  PyExc_ImportError, nullptr);
+  PythonQtImportError = PyErr_NewException(const_cast<char*>("PythonQtImport.PythonQtImportError"), PyExc_ImportError, nullptr);
   if (PythonQtImportError == nullptr)
-	return;
+    return;
 
   Py_INCREF(PythonQtImportError);
-  if (PyModule_AddObject(mod, "PythonQtImportError",
-			 PythonQtImportError) < 0) {
-	Py_DECREF(PythonQtImportError);
-	return;
+  if (PyModule_AddObject(mod, "PythonQtImportError", PythonQtImportError) < 0) {
+    Py_DECREF(PythonQtImportError);
+    return;
   }
 
   Py_INCREF(&PythonQtImporter_Type);
-  if (PyModule_AddObject(mod, "PythonQtImporter",
-			 (PyObject *)&PythonQtImporter_Type) < 0) {
-	Py_DECREF(&PythonQtImporter_Type);
-	return;
-   }
+  if (PyModule_AddObject(mod, "PythonQtImporter", (PyObject*)&PythonQtImporter_Type) < 0) {
+    Py_DECREF(&PythonQtImporter_Type);
+    return;
+  }
 
   // set our importer into the path_hooks to handle all path on sys.path
   PyObject* classobj = PyDict_GetItemString(PyModule_GetDict(mod), "PythonQtImporter");

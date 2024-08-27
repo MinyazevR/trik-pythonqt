@@ -48,10 +48,9 @@
 #include <QByteArray>
 #include <QMetaMethod>
 
-namespace PythonQtUtils
-{
+namespace PythonQtUtils {
   inline QByteArray signature(const QMetaMethod& method) {
-#if( QT_VERSION >= QT_VERSION_CHECK(5,0,0) )
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     return method.methodSignature();
 #else
     return QByteArray(method.signature());
@@ -59,7 +58,7 @@ namespace PythonQtUtils
   }
 
   inline QByteArray methodName(const QMetaMethod& method) {
-#if( QT_VERSION >= QT_VERSION_CHECK(5,0,0) )
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     return method.name();
 #else
     QByteArray sig(method.signature());
@@ -70,7 +69,7 @@ namespace PythonQtUtils
   }
 
   inline QByteArray typeName(const QMetaMethod& method) {
-#if( QT_VERSION >= QT_VERSION_CHECK(5,0,0) )
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     QByteArray result = method.typeName();
     if (result == "void") {
       return QByteArray();
@@ -94,4 +93,3 @@ namespace PythonQtUtils
 }
 
 #endif
-
