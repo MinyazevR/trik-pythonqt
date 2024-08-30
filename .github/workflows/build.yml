@@ -135,12 +135,9 @@ jobs:
         uname -a; gcc --version | grep "gcc"; python3 --version; qmake-qt5 --version
         echo ============================
         export PYTHON_VERSION_SHORT=`python3 --version | cut -d " " -f 2 | cut -d "." -f1,2`
-        export PYTHON_DIR=`whereis python3 | xargs dirname | xargs dirname`
-        echo PYTHON_VERSION_SHORT=${PYTHON_VERSION_SHORT}
-        echo PYTHON_DIR=${PYTHON_DIR}
         qmake-qt5 -r PythonQt.pro CONFIG+=${{ matrix.configuration }} \
         CONFIG+=tests CONFIG+=generator \
-          "PYTHON_VERSION=${PYTHON_VERSION_SHORT}" "PYTHON_DIR=${PYTHON_DIR}"
+          "PYTHON_VERSION=${PYTHON_VERSION_SHORT}" "/usr"
         make -j $(nproc) && \
         PYTHONDEVMODE=1 PYTHONASYNCIODEBUG=1 PYTHONWARNINGS=error PYTHONMALLOC=malloc_debug \
           make check
