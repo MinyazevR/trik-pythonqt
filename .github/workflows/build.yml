@@ -112,8 +112,17 @@ jobs:
         gcc-c++ \
         python3-dev \
         libpython3 \
+        qt5-base-devel \
+        qt5-tools-devel \
+        qt5-declarative-devel \
+        qt5-svg-devel \ 
+        qt5-multimedia-devel \
+        qt5-xmlpatterns-devel \
+        qt5-multimedia-devel \
+        qt5-quick1-devel \
+        qt5-script-devel \
+        qt5-3d-devel \
         make \
-        qt5-*-devel \
         apt-get clean
         
     - name: Checkout PythonQt
