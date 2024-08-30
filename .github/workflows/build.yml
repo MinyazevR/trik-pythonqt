@@ -102,6 +102,43 @@ jobs:
         name: wrappers_ubuntu_${{ matrix.container_version }}
         path: generated_cpp
 
+  altlinux:
+    runs-on: ubuntu-latest
+    container: altlinux/base:latest
+     steps:
+    - name: Install Qt
+      run: |
+        apt-get update && apt-get install -y 
+        gcc-c++ \
+        python3-devel \
+        libpython3-devel \
+        qt5-qtsvg \
+        qt5-qtxmlpatterns \
+        qt5-qtmultimedia \
+        make \
+        qt5-*-devel \
+        apt-get clean
+        
+    - name: Checkout PythonQt
+      uses: actions/checkout@v3
+      
+    - name: Build PythonQt
+      run: |
+        export QT_SELECT=qt5
+        echo ======= SYSTEM INFO ========
+        uname -a; gcc --version | grep "gcc"; python3 --version; qmake-qt5 --version
+        echo ============================
+        export PYTHON_VERSION_SHORT=`python3 --version | cut -d " " -f 2 | cut -d "." -f1,2`
+        export PYTHON_DIR=`which python3 | xargs dirname | xargs dirname`
+        echo PYTHON_VERSION_SHORT=${PYTHON_VERSION_SHORT}
+        echo PYTHON_DIR=${PYTHON_DIR}
+        qmake-qt5 -r PythonQt.pro CONFIG+=${{ matrix.configuration }} \
+        CONFIG+=tests CONFIG+=generator \
+          "PYTHON_VERSION=${PYTHON_VERSION_SHORT}" "PYTHON_DIR=${PYTHON_DIR}"
+        make -j $(nproc) && \
+        PYTHONDEVMODE=1 PYTHONASYNCIODEBUG=1 PYTHONWARNINGS=error PYTHONMALLOC=malloc_debug \
+          make check
+        
   oldschool:
     strategy:
       fail-fast: false
