@@ -137,7 +137,7 @@ jobs:
         export PYTHON_VERSION_SHORT=`python3 --version | cut -d " " -f 2 | cut -d "." -f1,2`
         qmake-qt5 -r PythonQt.pro CONFIG+=${{ matrix.configuration }} \
         CONFIG+=tests CONFIG+=generator \
-          "PYTHON_VERSION=${PYTHON_VERSION_SHORT}" "/usr"
+          "PYTHON_VERSION=${PYTHON_VERSION_SHORT}" PYTHON_DIR="/usr"
         make -j $(nproc) && \
         PYTHONDEVMODE=1 PYTHONASYNCIODEBUG=1 PYTHONWARNINGS=error PYTHONMALLOC=malloc_debug \
           make check
