@@ -111,7 +111,6 @@ jobs:
         apt-get update && apt-get install -y \
         gcc-c++ \
         python3-dev \
-        libpython3-dev \
         make \
         qt5-*-devel \
         apt-get clean
