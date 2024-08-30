@@ -110,11 +110,8 @@ jobs:
       run: |
         apt-get update && apt-get install -y \
         gcc-c++ \
-        python3-devel \
-        libpython3-devel \
-        qt5-qtsvg \
-        qt5-qtxmlpatterns \
-        qt5-qtmultimedia \
+        python3-dev \
+        libpython3-dev \
         make \
         qt5-*-devel \
         apt-get clean
