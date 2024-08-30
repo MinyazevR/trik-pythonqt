@@ -108,7 +108,7 @@ jobs:
     steps:
     - name: Install Qt
       run: |
-        apt-get update && apt-get install -y 
+        apt-get update && apt-get install -y \
         gcc-c++ \
         python3-devel \
         libpython3-devel \
