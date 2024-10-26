@@ -86,19 +86,24 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
   if (!_self) {
 	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	_self = new PythonQt(flags, pythonQtModuleName);
-
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	_self->_p->_PythonQtObjectPtr_metaId = qRegisterMetaType<PythonQtObjectPtr>("PythonQtObjectPtr");
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQtConv::registerMetaTypeToPythonConverter(_self->_p->_PythonQtObjectPtr_metaId, PythonQtConv::convertFromPythonQtObjectPtr);
 	PythonQtConv::registerPythonToMetaTypeConverter(_self->_p->_PythonQtObjectPtr_metaId, PythonQtConv::convertToPythonQtObjectPtr);
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	_self->_p->_PythonQtSafeObjectPtr_metaId = qRegisterMetaType<PythonQtSafeObjectPtr>("PythonQtSafeObjectPtr");
 	PythonQtConv::registerMetaTypeToPythonConverter(_self->_p->_PythonQtSafeObjectPtr_metaId, PythonQtConv::convertFromPythonQtSafeObjectPtr);
 	PythonQtConv::registerPythonToMetaTypeConverter(_self->_p->_PythonQtSafeObjectPtr_metaId, PythonQtConv::convertToPythonQtSafeObjectPtr);
 
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQtObjectPtr importlib;
 	importlib.setNewRef(PyImport_ImportModule("importlib.machinery"));
 
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	if (importlib) {
 	  _self->_p->_pySourceFileLoader = importlib.getVariable("SourceFileLoader");
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	  _self->_p->_pySourcelessFileLoader = importlib.getVariable("SourcelessFileLoader");
 	}
 
@@ -340,11 +345,13 @@ PythonQt* PythonQt::self() { return _self; }
 
 PythonQt::PythonQt(int flags, const QByteArray& pythonQtModuleName)
 {
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
   _p = new PythonQtPrivate;
   _p->_initFlags = flags;
-
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
   if ((flags & PythonAlreadyInitialized) == 0) {
 #ifdef PY3K
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	Py_SetProgramName(const_cast<wchar_t*>(L"PythonQt"));
 #else
 	Py_SetProgramName(const_cast<char*>("PythonQt"));
@@ -353,7 +360,9 @@ PythonQt::PythonQt(int flags, const QByteArray& pythonQtModuleName)
 	  // this prevents the automatic importing of Python site files
 	  Py_NoSiteFlag = 1;
 	}
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	Py_Initialize();
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
   }
 
 #ifdef PYTHONQT_FULL_THREAD_SUPPORT
@@ -1525,6 +1534,7 @@ void PythonQt::addWrapperFactory( PythonQtForeignWrapperFactory* factory )
 //---------------------------------------------------------------------------------------------------
 PythonQtPrivate::PythonQtPrivate()
 {
+		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
   _importInterface = nullptr;
   _defaultImporter = new PythonQtQFileImporter;
   _noLongerWrappedCB = nullptr;
@@ -1536,6 +1546,7 @@ PythonQtPrivate::PythonQtPrivate()
   _systemExitExceptionHandlerEnabled = false;
   _debugAPI = new PythonQtDebugAPI(this);
   _configAPI = new PythonQtConfigAPI(this);
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 void PythonQtPrivate::preCleanup()
