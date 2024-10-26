@@ -1559,11 +1559,17 @@ PythonQtPrivate::PythonQtPrivate()
 
 void PythonQtPrivate::preCleanup()
 {
-//	_pySourceFileLoader = nullptr;
-//	_pySourcelessFileLoader = nullptr;
-//	_pyEnsureFuture = nullptr;
-//	_pyFutureClass = nullptr;
-//	_pyTaskDoneCallback = nullptr;
+	qDebug() << Py_REFCNT(_pyFutureClass);
+	qDebug() << Py_REFCNT(_pyEnsureFuture);
+	qDebug() << Py_REFCNT(_pyTaskDoneCallback);
+	qDebug() << Py_REFCNT(_pySourceFileLoader);
+	qDebug() << Py_REFCNT(_pySourcelessFileLoader);
+
+	Py_DECREF(_pyFutureClass);
+	Py_DECREF(_pyEnsureFuture);
+	Py_DECREF(_pyTaskDoneCallback);
+	Py_DECREF(_pySourceFileLoader);
+	Py_DECREF(_pySourcelessFileLoader);
 }
 
 void PythonQtPrivate::setupSharedLibrarySuffixes()
