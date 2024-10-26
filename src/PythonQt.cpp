@@ -338,7 +338,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 void PythonQt::cleanup()
 {
   if (_self) {
-	_self->removeSignalHandlers();
+//	_self->removeSignalHandlers();
 	delete _self;
     _self = nullptr;
   }
@@ -1559,11 +1559,11 @@ PythonQtPrivate::PythonQtPrivate()
 
 void PythonQtPrivate::preCleanup()
 {
-	_pySourceFileLoader = nullptr;
-	_pySourcelessFileLoader = nullptr;
-	_pyEnsureFuture = nullptr;
-	_pyFutureClass = nullptr;
-	_pyTaskDoneCallback = nullptr;
+//	_pySourceFileLoader = nullptr;
+//	_pySourcelessFileLoader = nullptr;
+//	_pyEnsureFuture = nullptr;
+//	_pyFutureClass = nullptr;
+//	_pyTaskDoneCallback = nullptr;
 }
 
 void PythonQtPrivate::setupSharedLibrarySuffixes()
