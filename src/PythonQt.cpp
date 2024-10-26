@@ -1559,13 +1559,11 @@ PythonQtPrivate::PythonQtPrivate()
 
 void PythonQtPrivate::preCleanup()
 {
-	qDebug() << Py_REFCNT(_pyFutureClass);
-	qDebug() << Py_REFCNT(_pyEnsureFuture);
-	Py_DECREF(_pyFutureClass);
-	Py_DECREF(_pyEnsureFuture);
 	_pyTaskDoneCallback = nullptr;
 	_pySourceFileLoader = nullptr;
 	_pySourcelessFileLoader = nullptr;
+	_pyEnsureFuture = nullptr;
+	_pyFutureClass = nullptr;
 }
 
 void PythonQtPrivate::setupSharedLibrarySuffixes()
