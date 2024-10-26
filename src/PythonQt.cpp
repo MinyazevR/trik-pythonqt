@@ -108,22 +108,22 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	    qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	}
 
-//#ifdef PY3K
-//	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//    PythonQtObjectPtr asyncio;
-//    qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//    auto asyncio_mod = PyImport_ImportModule("asyncio");
-//    if (asyncio_mod != NULL) {
-//	asyncio.setNewRef(asyncio_mod);
-//	    if (asyncio)
-//	    {
-//		      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//	      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
-//	      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
-//		qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//	    }
-//    }
-//#endif
+#ifdef PY3K
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+    PythonQtObjectPtr asyncio;
+    qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+    auto asyncio_mod = PyImport_ImportModule("asyncio");
+    if (asyncio_mod != NULL) {
+	asyncio.setNewRef(asyncio_mod);
+	    if (asyncio)
+	    {
+		      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
+	      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
+		qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	    }
+    }
+#endif
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQt::priv()->setupSharedLibrarySuffixes();
 
@@ -338,7 +338,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 void PythonQt::cleanup()
 {
   if (_self) {
-//	_self->removeSignalHandlers();
+	_self->removeSignalHandlers();
 	delete _self;
     _self = nullptr;
   }
@@ -1559,8 +1559,10 @@ PythonQtPrivate::PythonQtPrivate()
 
 void PythonQtPrivate::preCleanup()
 {
-	_pyFutureClass = nullptr;
-	_pyEnsureFuture = nullptr;
+	qDebug() << Py_REFCNT(_pyFutureClass);
+	qDebug() << Py_REFCNT(_pyEnsureFuture);
+	Py_DECREF(_pyFutureClass);
+	Py_DECREF(_pyEnsureFuture);
 	_pyTaskDoneCallback = nullptr;
 	_pySourceFileLoader = nullptr;
 	_pySourcelessFileLoader = nullptr;
