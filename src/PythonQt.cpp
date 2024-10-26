@@ -84,6 +84,7 @@ void PythonQt_init_QtCoreBuiltin(PyObject*);
 void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 {
   if (!_self) {
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	_self = new PythonQt(flags, pythonQtModuleName);
 
 	_self->_p->_PythonQtObjectPtr_metaId = qRegisterMetaType<PythonQtObjectPtr>("PythonQtObjectPtr");
@@ -110,7 +111,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
       _self->_p->_pyFutureClass = asyncio.getVariable("Future");
     }
 #endif
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQt::priv()->setupSharedLibrarySuffixes();
 
 	PythonQtMethodInfo::addParameterTypeAlias("QObjectList", "QList<QObject*>");
@@ -157,7 +158,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	PythonQtMethodInfo::addParameterTypeAlias("QList<MLint>", "QList<qint64>");
 	PythonQtMethodInfo::addParameterTypeAlias("QVector<MLint>", "QVector<qint64>");
 #endif
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQtMethodInfo::addParameterTypeAlias("QList<qreal>", "QList<double>");
 	PythonQtMethodInfo::addParameterTypeAlias("QVector<qreal>", "QVector<double>");
 	PythonQtMethodInfo::addParameterTypeAlias("QList<unsigned int>", "QList<quint32>");
@@ -178,7 +179,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 
 	PythonQtMethodInfo::addParameterTypeAlias("QList<QLocale::Country>", "QList<int>");
 	PythonQtMethodInfo::addParameterTypeAlias("QList<Qt::DayOfWeek>", "QList<int>");
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	// register some QPairs that are used in the Qt interfaces:
 	PythonQtRegisterQPairConverter(int, int);
 	PythonQtRegisterQPairConverter(float, float);
@@ -218,7 +219,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	PythonQtRegisterIntegerMapConverter(QHash, QVariant);
 	PythonQtRegisterIntegerMapConverter(QHash, QString);
 	PythonQtMethodInfo::addParameterTypeAlias("QHash<QNetworkRequest::Attribute,QVariant>", "QHash<int,QVariant>");
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     PythonQt_init_QtCoreBuiltin(nullptr);
     PythonQt_init_QtGuiBuiltin(nullptr);
 
@@ -297,7 +298,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	  "QtFatalMsg",
 	  "QtSystemMsg"
 	};
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     for (auto i = 0u; i < sizeof(enumValues)/sizeof(int); i++) {
 	  PyObject* obj = PyInt_FromLong(enumValues[i]);
       if (PyModule_AddObject(pack, enumNames[i], obj) == 0) {
@@ -317,7 +318,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	PyModule_AddObject(pack, "Slot", (PyObject*)&PythonQtSlotDecorator_Type);
 	PyModule_AddObject(pack, "Signal", (PyObject*)&PythonQtSignalFunction_Type);
 	PyModule_AddObject(pack, "Property", (PyObject*)&PythonQtProperty_Type);
-
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
   }
 }
 
