@@ -112,15 +112,16 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     PythonQtObjectPtr asyncio;
     qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-    qDebug() << PyImport_ImportModule("asyncio")->ob_type->tp_name;
-    asyncio.setNewRef(PyImport_ImportModule("asyncio"));
-      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-    if (asyncio)
-    {
-	      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
-      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
-	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+    auto asyncio_mod = PyImport_ImportModule("asyncio");
+    if (asyncio_mod != NULL) {
+	asyncio.setNewRef(asyncio_mod);
+	    if (asyncio)
+	    {
+		      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
+	      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
+		qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	    }
     }
 #endif
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
