@@ -111,6 +111,8 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 #ifdef PY3K
 	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     PythonQtObjectPtr asyncio;
+    qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+    qDebug() << PyImport_ImportModule("asyncio")->ob_type->tp_name;
     asyncio.setNewRef(PyImport_ImportModule("asyncio"));
       qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     if (asyncio)
