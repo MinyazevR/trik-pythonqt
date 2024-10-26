@@ -105,15 +105,20 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	  _self->_p->_pySourceFileLoader = importlib.getVariable("SourceFileLoader");
 		  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	  _self->_p->_pySourcelessFileLoader = importlib.getVariable("SourcelessFileLoader");
+	    qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	}
 
 #ifdef PY3K
+	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     PythonQtObjectPtr asyncio;
     asyncio.setNewRef(PyImport_ImportModule("asyncio"));
+      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     if (asyncio)
     {
+	      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
       _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
       _self->_p->_pyFutureClass = asyncio.getVariable("Future");
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     }
 #endif
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
