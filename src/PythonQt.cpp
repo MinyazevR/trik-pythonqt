@@ -113,6 +113,7 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
     PythonQtObjectPtr asyncio;
     qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     asyncio.setNewRef(PyImport_ImportModule("asyncio"));
+    qDebug() << "DDDDDDDD" << Py_REFCNT(asyncio);
     if (asyncio)
     {
 	      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
