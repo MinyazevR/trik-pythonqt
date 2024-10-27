@@ -112,17 +112,14 @@ void PythonQt::init(int flags, const QByteArray& pythonQtModuleName)
 	  qDebug() << __PRETTY_FUNCTION__ << __LINE__;
     PythonQtObjectPtr asyncio;
     qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-    auto asyncio_mod = PyImport_ImportModule("asyncio");
-//    if (asyncio_mod != NULL) {
-//	asyncio.setNewRef(asyncio_mod);
-//	    if (asyncio)
-//	    {
-//		      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//	      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
-//	      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
-//		qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-//	    }
-//    }
+    asyncio.setNewRef(PyImport_ImportModule("asyncio"));
+    if (asyncio)
+    {
+	      qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+      _self->_p->_pyEnsureFuture = asyncio.getVariable("ensure_future");
+      _self->_p->_pyFutureClass = asyncio.getVariable("Future");
+	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+    }
 #endif
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	PythonQt::priv()->setupSharedLibrarySuffixes();
