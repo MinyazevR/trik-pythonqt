@@ -57,26 +57,31 @@ void PythonQtMemoryTests::cleanup()
 void PythonQtMemoryTests::testBaseCleanup()
 {
   PythonQt::init();
+  cleanup();
 }
 
 void PythonQtMemoryTests::testCleanupWithFlags()
 {
   PythonQt::init(PythonQt::IgnoreSiteModule | PythonQt::RedirectStdOut);
+  cleanup();
 }
 
 void PythonQtMemoryTests::testInitAlreadyInitialized()
 {
   Py_InitializeEx(true);
   PythonQt::init(PythonQt::PythonAlreadyInitialized);
+  cleanup();
 }
 
 void PythonQtMemoryTests::testSeveralCleanup() {
-	return;
   PythonQt::init();
-  PythonQt::preCleanup();
-  PythonQt::cleanup();
+  cleanup();
 
   PythonQt::init();
+  cleanup();
+
+  PythonQt::init();
+  cleanup();
 }
 
 void PythonQtMemoryTests::testInitWithPreconfig() {
@@ -85,6 +90,7 @@ void PythonQtMemoryTests::testInitWithPreconfig() {
   PyConfig_InitPythonConfig(&config);
   Py_InitializeFromConfig(&config);
   PythonQt::init(PythonQt::RedirectStdOut | PythonQt::PythonAlreadyInitialized);
+  cleanup();
 #endif
 }
 
