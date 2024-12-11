@@ -79,6 +79,9 @@ void PythonQtMemoryTests::testSeveralCleanup() {
 
   PythonQt::init();
   cleanup();
+
+  PythonQt::init();
+  cleanup();
 }
 
 void PythonQtMemoryTests::testInitWithPreconfig() {
